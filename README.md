@@ -1,5 +1,5 @@
 # one-click-doh
-A shell script to install a doh server with Chinese-specific configuration, EDNS support, and cache enabled.
+A shell script to install a DNS over HTTPS (DoH) server with Chinese-specific configuration, EDNS support, and cache enabled, using [DNS Proxy](https://github.com/AdguardTeam/dnsproxy) and [dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list).
 
 In theory, it supports CentOS, Fedora, Debian, and Ubuntu.
 
