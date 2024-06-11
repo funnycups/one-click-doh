@@ -56,8 +56,9 @@ VERSION=$(curl -s https://api.github.com/repos/AdguardTeam/dnsproxy/releases/lat
 wget -O dnsproxy.tar.gz "https://github.com/AdguardTeam/dnsproxy/releases/download/${VERSION}/dnsproxy-linux-amd64-${VERSION}.tar.gz"
 tar -xzvf dnsproxy.tar.gz
 cd linux-amd64
-mv dnsproxy /usr/bin/dnsproxy
+mv -f dnsproxy /usr/bin/dnsproxy
 cd /tmp/install
+rm -rf linux-amd64 dnsproxy.tar.gz
 
 #set up crontab and make list.txt
 mkdir -p /home/dnsproxy
@@ -85,8 +86,8 @@ curl -s https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/
 #get the ssl certificate
 if [[ ! -d ~/.acme.sh ]];then
 	curl https://get.acme.sh | sh -s email=my@example.com
-	source ~/.bashrc
 fi
+source ~/.bashrc
 if [[ $webdir ]];then
 	acme.sh --issue -d $domain --webroot $webdir
 else
