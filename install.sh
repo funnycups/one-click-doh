@@ -115,7 +115,7 @@ systemctl daemon-reload
 systemctl enable dnsproxy
 
 #generate the ssl file
-acme.sh --install-cert -d $domain \
+~/.acme.sh/acme.sh --install-cert -d $domain \
 --key-file       /home/dnsproxy/ssl.key  \
 --fullchain-file /home/dnsproxy/ssl.crt \
 --reloadcmd     "systemctl restart dnsproxy"
