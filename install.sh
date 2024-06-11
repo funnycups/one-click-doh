@@ -89,10 +89,10 @@ if [[ ! -d ~/.acme.sh ]];then
 fi
 source ~/.bashrc
 if [[ $webdir ]];then
-	acme.sh --issue -d $domain --webroot $webdir
+	~/.acme.sh/acme.sh --issue -d $domain --webroot $webdir
 else
 	$pkg_manager install -y socat
-	acme.sh --issue -d $domain --standalone
+	~/.acme.sh/acme.sh --issue -d $domain --standalone
 fi
 
 #set up systemd
