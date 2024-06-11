@@ -63,24 +63,16 @@ rm -rf linux-amd64 dnsproxy.tar.gz
 #set up crontab and make list.txt
 mkdir -p /home/dnsproxy
 echo -e '#!/bin/bash
-echo "https://dns11.quad9.net:443/dns-query
-https://1.1.1.1/dns-query
-https://unfiltered.adguard-dns.com/dns-query
+echo "https://1.1.1.1/dns-query
 https://hk-hkg.doh.sb/dns-query
-https://jp-nrt.doh.sb/dns-query
-https://freedns.controld.com/p0
-https://8.8.8.8/dns-query" > /home/dnsproxy/list.txt'"
+https://jp-nrt.doh.sb/dns-query" > /home/dnsproxy/list.txt'"
 curl -s https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf| awk -F'[=/]' '{print \"[/\" \$3 \"/]https://doh.pub/dns-query\"}' >> /home/dnsproxy/list.txt
 systemctl restart dnsproxy" > /home/dnsproxy/update.sh
 (echo "0 */3 * * * bash /home/dnsproxy/update.sh" && crontab -l)|crontab
 #generate first
-echo "https://dns11.quad9.net:443/dns-query
-https://1.1.1.1/dns-query
-https://unfiltered.adguard-dns.com/dns-query
+echo "https://1.1.1.1/dns-query
 https://hk-hkg.doh.sb/dns-query
-https://jp-nrt.doh.sb/dns-query
-https://freedns.controld.com/p0
-https://8.8.8.8/dns-query" > /home/dnsproxy/list.txt
+https://jp-nrt.doh.sb/dns-query" > /home/dnsproxy/list.txt
 curl -s https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf| awk -F'[=/]' '{print "[/" $3 "/]https://doh.pub/dns-query"}' >> /home/dnsproxy/list.txt
 
 #get the ssl certificate
@@ -103,7 +95,7 @@ Requires=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/dnsproxy -l 127.0.0.1 -p $port -u /home/dnsproxy/list.txt -b https://1.1.1.1/dns-query --https-port=$https_port --tls-crt=/home/dnsproxy/ssl.crt --tls-key=/home/dnsproxy/ssl.key --all-servers --cache --edns
+ExecStart=/usr/bin/dnsproxy -l 127.0.0.1 -p $port -u /home/dnsproxy/list.txt -b 1.1.1.1 --https-port=$https_port --tls-crt=/home/dnsproxy/ssl.crt --tls-key=/home/dnsproxy/ssl.key --all-servers --cache --edns
 Restart=on-failure
 
 [Install]
