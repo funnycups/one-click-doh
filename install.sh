@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 center_print(){
 	text=$1
 	terminal_width=$(tput cols)
@@ -73,9 +73,13 @@ curl -s https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/
 systemctl restart dnsproxy" > /home/dnsproxy/update.sh
 (echo "0 */3 * * * bash /home/dnsproxy/update.sh" && crontab -l)|crontab
 #generate first
-echo "https://1.1.1.1/dns-query
+echo "https://dns11.quad9.net:443/dns-query
+https://1.1.1.1/dns-query
+https://unfiltered.adguard-dns.com/dns-query
 https://hk-hkg.doh.sb/dns-query
-https://jp-nrt.doh.sb/dns-query" > /home/dnsproxy/list.txt
+https://jp-nrt.doh.sb/dns-query
+https://freedns.controld.com/p0
+https://8.8.8.8/dns-query" > /home/dnsproxy/list.txt
 curl -s https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf| awk -F'[=/]' '{print "[/" $3 "/]https://doh.pub/dns-query"}' >> /home/dnsproxy/list.txt
 
 #get the ssl certificate
@@ -86,6 +90,7 @@ fi
 if [[ $webdir ]];then
 	acme.sh --issue -d $domain --webroot $webdir
 else
+	$pkg_manager install -y socat
 	acme.sh --issue -d $domain --standalone
 fi
 
@@ -115,8 +120,8 @@ acme.sh --install-cert -d $domain \
 --reloadcmd     "systemctl restart dnsproxy"
 
 ui_port=
-if [[ $https-port != 443 ]];then
-	ui_port=":$port"
+if [[ $https_port != 443 ]];then
+	ui_port=":$https_port"
 fi
 clear
 center_print '============================================================='
