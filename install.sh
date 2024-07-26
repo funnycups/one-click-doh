@@ -95,7 +95,7 @@ Requires=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/dnsproxy -l 127.0.0.1 -p $port -u /home/dnsproxy/list.txt -b 1.1.1.1 --https-port=$https_port --tls-crt=/home/dnsproxy/ssl.crt --tls-key=/home/dnsproxy/ssl.key --all-servers --cache --edns
+ExecStart=/usr/bin/dnsproxy -l 127.0.0.1 -p $port -u /home/dnsproxy/list.txt -b 1.1.1.1 --https-port=$https_port --tls-crt=/home/dnsproxy/ssl.crt --tls-key=/home/dnsproxy/ssl.key --upstream-mode parallel --cache --edns
 Restart=on-failure
 
 [Install]
