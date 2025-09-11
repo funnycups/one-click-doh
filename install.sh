@@ -7,6 +7,65 @@ center_print(){
 	padding=$(printf '%*s' "$leading_spaces")
 	echo "${padding}${text}"
 }
+
+# Uninstall function and arg handling
+uninstall_doh(){
+	if [[ $EUID -ne 0 ]]; then
+		echo "Please run as root (use sudo)."
+		exit 1
+	fi
+	echo "Uninstalling DoH service and configuration..."
+
+	# Stop and disable systemd service if available
+	if command -v systemctl >/dev/null 2>&1; then
+		if systemctl list-unit-files | grep -q '^dnsproxy\.service'; then
+			systemctl stop dnsproxy 2>/dev/null || true
+			systemctl disable dnsproxy 2>/dev/null || true
+		fi
+		# Remove service file and reload daemon
+		if [[ -f /etc/systemd/system/dnsproxy.service ]]; then
+			rm -f /etc/systemd/system/dnsproxy.service
+			systemctl daemon-reload || true
+		fi
+	fi
+
+	# Remove cron job that runs update.sh every 3 hours
+	if crontab -l >/tmp/.one_click_doh_cron 2>/dev/null; then
+		grep -v '/home/dnsproxy/update.sh' /tmp/.one_click_doh_cron | crontab -
+		rm -f /tmp/.one_click_doh_cron
+	fi
+
+	# Remove installed files and binary
+	rm -rf /home/dnsproxy
+	if [[ -f /usr/bin/dnsproxy ]]; then
+		rm -f /usr/bin/dnsproxy
+	fi
+
+	# Restore DNS resolver configuration if possible
+	if [[ -f /etc/resolv.conf.bak ]]; then
+		if cp -a /etc/resolv.conf.bak /etc/resolv.conf 2>/dev/null || cp /etc/resolv.conf.bak /etc/resolv.conf; then
+			rm -f /etc/resolv.conf.bak
+		else
+			echo "Warning: failed to restore /etc/resolv.conf from backup; backup kept at /etc/resolv.conf.bak."
+		fi
+	else
+		# If resolv.conf points to 127.0.0.1, fallback to public DNS (Cloudflare/Google)
+		if grep -qE '^\s*nameserver\s+127\.0\.0\.1(\s|$)' /etc/resolv.conf 2>/dev/null; then
+			{
+				echo 'nameserver 1.1.1.1'
+				echo 'nameserver 8.8.8.8'
+			} > /etc/resolv.conf
+		fi
+	fi
+
+	echo "DoH uninstalled. resolv.conf has been restored from backup when available, otherwise switched from 127.0.0.1 to public DNS (1.1.1.1/8.8.8.8) if needed."
+	exit 0
+}
+
+# Handle --uninstall early before proceeding with installation
+if [[ "$1" == "--uninstall" || "$1" == "-u" ]]; then
+	uninstall_doh
+fi
 #install crontab,wget and curl,net-tools
 echo "Installing essential software, please wait..."
 if [[ -x `command -v yum` ]];then
@@ -25,7 +84,7 @@ center_print '============================================================='
 center_print 'DoH server one-click installation'
 center_print 'Install DoH server with Chinese-specific configuration'
 center_print 'More detailed information at'
-center_print 'https://www.xh-ws.com/archives/self-build-doh.html'
+center_print 'https://www.cups.moe/archives/self-build-doh.html'
 center_print '============================================================='
 echo -n "Would you like to make this server itself use the installed DoH service?(y/n):"
 read self
@@ -101,6 +160,14 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/dnsproxy.service
 if [[ $port = 53 ]];then
+	# Backup resolv.conf
+	if [[ ! -f /etc/resolv.conf.bak ]]; then
+		if cp -a /etc/resolv.conf /etc/resolv.conf.bak 2>/dev/null || cp /etc/resolv.conf /etc/resolv.conf.bak; then
+			:
+		else
+			echo "Warning: failed to backup /etc/resolv.conf to /etc/resolv.conf.bak; continuing."
+		fi
+	fi
 	echo "nameserver 127.0.0.1" > /etc/resolv.conf
 fi
 systemctl daemon-reload
@@ -121,5 +188,5 @@ center_print '============================================================='
 center_print 'All done!'
 center_print "You can now use DoH through https://${domain}${ui_port}/dns-query"
 center_print 'More information at'
-center_print 'https://www.xh-ws.com/archives/self-build-doh.html'
+center_print 'https://www.cups.moe/archives/self-build-doh.html'
 exit 0
